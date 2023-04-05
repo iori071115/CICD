@@ -1,0 +1,6 @@
+*** Settings ***
+Resource          通用组件.txt
+Resource          页面组件/01登录页.txt
+Library           RFKeywords.py
+Resource          页面组件/Project.txt
+Library           Emailtoken.py

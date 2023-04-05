@@ -1,0 +1,180 @@
+*** Settings ***
+Library           SeleniumLibrary
+Library           String
+Library           DateTime
+Library           OperatingSystem
+Library           Collections
+Library           Dialogs
+Library           Screenshot
+Library           XML
+Library           os
+Library           RequestsLibrary
+
+*** Variables ***
+${retry times}    3x
+${retry interval time}    5s
+${wait time}      3 minutes
+${AIOT_Main page_URL}    https://ss
+${Key Test Timeout}    10 minutes
+${LifeCycle Test Timeout}    20 minutes
+${LifeCycle2 Test Timeout}    10 minutes
+${LinkCheck Test Timeout}    10 minutes
+${Login Test Timeout}    5 minutes
+${is Keypair Enabled}    True
+${is DEHS Enabled}    True
+
+*** Keywords ***
+stopall
+    [Arguments]    ${URL}
+    [Documentation]    返回登录页面，关闭所有浏览器窗口
+    Run Keyword And Ignore Error    log url cookie
+    Run Keyword And Ignore Error    go to    ${URL}
+    sleep    5s
+    Run Keyword And Ignore Error    Capture Page Screenshot
+    Run Keyword And Ignore Error    close all browsers
+
+wait element
+    [Arguments]    ${Element_LOCATOR}
+    [Documentation]    获取元素并判断它的可见性和可用性
+    wait until page contains element    ${Element_LOCATOR}    ${wait time}
+    wait until element is enabled    ${Element_LOCATOR}    ${wait time}
+    wait until keyword succeeds    3x    5s    get scroll height    ${Element_LOCATOR}
+    run keyword if    ${scroll} >= 0    scroll to    ${scroll}
+    wait until element is visible    ${Element_LOCATOR}    ${wait time}
+    #Capture Page Screenshot
+    sleep    2s
+
+get scroll height
+    [Arguments]    ${Element_LOCATOR}
+    scroll to    0
+    ${window-width}    ${window-height}=    get window size
+    ${Vertical Position}    Get Vertical Position    ${Element_LOCATOR}
+    log    ${Vertical Position}
+    ${scroll}=    Evaluate    ${Vertical Position}-(${window-height}/2)
+    Set Suite Variable    ${scroll}
+
+scroll to
+    [Arguments]    ${scroll value}
+    Execute Javascript    var q=document.documentElement.scrollTop=${scroll value}
+
+wait input element
+    [Arguments]    ${Element_LOCATOR}    ${input_text}
+    [Documentation]    获取元素并输入文本
+    wait element    ${Element_LOCATOR}
+    input text    ${Element_LOCATOR}    ${input_text}
+
+wait click element
+    [Arguments]    ${Element_LOCATOR}
+    [Documentation]    获取元素并点击
+    wait element    ${Element_LOCATOR}
+    wait until keyword succeeds    3    1s    click element    ${Element_LOCATOR}
+
+wait mouse down up element
+    [Arguments]    ${Element_LOCATOR}
+    wait element    ${Element_LOCATOR}
+    SeleniumLibrary.Mouse Down    ${Element_LOCATOR}
+    SeleniumLibrary.Mouse Up    ${Element_LOCATOR}
+
+wait input element no scroll
+    [Arguments]    ${Element_LOCATOR}    ${input_text}
+    wait until page contains element    ${Element_LOCATOR}    ${wait time}
+    wait until element is visible    ${Element_LOCATOR}    ${wait time}
+    wait until element is enabled    ${Element_LOCATOR}    ${wait time}
+    sleep    1
+    input text    ${Element_LOCATOR}    ${input_text}
+    Capture Page Screenshot
+
+wait click element no scroll
+    [Arguments]    ${Element_LOCATOR}
+    wait until page contains element    ${Element_LOCATOR}    ${wait time}
+    wait until element is visible    ${Element_LOCATOR}    ${wait time}
+    wait until element is enabled    ${Element_LOCATOR}    ${wait time}
+    sleep    1
+    wait until keyword succeeds    3    1s    click element    ${Element_LOCATOR}
+    Capture Page Screenshot
+
+wait mouse down up element no scroll
+    [Arguments]    ${Element_LOCATOR}
+    wait until page contains element    ${Element_LOCATOR}    ${wait time}
+    wait until element is visible    ${Element_LOCATOR}    ${wait time}
+    wait until element is enabled    ${Element_LOCATOR}    ${wait time}
+    SeleniumLibrary.Mouse Down    ${Element_LOCATOR}
+    Capture Page Screenshot
+    SeleniumLibrary.Mouse Up    ${Element_LOCATOR}
+
+wait contains
+    [Arguments]    ${PAGE_CONTAINS}
+    [Documentation]    判断页面是否包含元素并截图
+    sleep    3
+    wait until page contains    ${PAGE_CONTAINS}    ${wait time}
+    Capture Page Screenshot
+    sleep    1
+
+close new select old
+    [Documentation]    如果点击链接后打开新浏览器，操作完后需要返回主浏览器
+    close window    #关闭当前浏览器窗口
+    select window    #选择主浏览器窗口
+
+verify link text
+    [Arguments]    ${verify text}
+    [Documentation]    打开link的新窗口并判断页面是否存在元素，再返回主窗口
+    wait and select new window
+    wait contains    ${verify text}
+    close window
+    select window
+
+wait and select new window
+    [Documentation]    切换到新窗口
+    sleep    3s
+    select window    new
+
+check page not contains
+    [Arguments]    ${text}
+    [Documentation]    判断页面不包含元素
+    sleep    2
+    wait until page does not contain    ${text}    ${wait time}
+    Capture Page Screenshot
+
+log url cookie
+    [Documentation]    打印Cookie和URL资讯
+    ${cookies}    get cookies
+    ${url}    Get Location
+    log    ${cookies}
+    log    ${url}
+
+Common Search
+    [Arguments]    ${Peering_value}
+    wait input element    css=    ${Peering_value}
+    wait click element    css=
+    sleep    2
+
+Search Common retry
+    [Arguments]    ${Peering_value}
+    ${is common search}    run keyword and return status    wait until element is visible    css=    5s
+    run keyword if    '${is common search}'=='True'    Common Search    ${Peering_value}
+    run keyword if    '${is common search}'!='True'    Search_ECS    ${Peering_value}
+    Capture Page Screenshot
+
+Search Common
+    [Arguments]    ${Peering_value}
+    wait until keyword succeeds    3x    1s    Search Common retry    ${Peering_value}
+
+自动切换frame
+    [Arguments]    ${Element_LOCATOR}    ${最大等待时间}=${默认等待时间}
+    [Documentation]    通过循环使用正确的iframe
+    wait until page does not contain element    //*[contains(text(),'正在处理')][contains(text(),'请稍等')]    60s
+    ${使用上一次frame成功}    run keyword and return status    wait until keyword succeeds    1s    0.001s    选择上次frame    ${Element_LOCATOR}
+    run keyword if    not ${使用上一次frame成功}    repeat keyword    10x
+
+upload file
+    [Arguments]    ${Element_LOCATOR}    ${file_path}
+    [Documentation]    上传文件
+    choose_file    ${Element_LOCATOR}    ${file_path}
+    sleep    10s
+
+download file
+    [Arguments]    ${Element_LOCATOR}    ${file_path}
+    [Documentation]    下载文件
+    wait click element    ${Element_LOCATOR}
+    sleep    10s
+    file_should_exist    ${file_path}

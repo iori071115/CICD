@@ -1,0 +1,10 @@
+*** Settings ***
+Library           SeleniumLibrary
+Resource          ../通用组件.txt
+
+*** Keywords ***
+select project
+    wait click element    //div[text()="${ProjectName}"]
+
+go approval list
+    wait click element    //i[@class="el-icon-office-building"]

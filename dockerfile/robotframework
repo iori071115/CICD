@@ -1,0 +1,16 @@
+FROM python:3.7
+USER 0
+WORKDIR /var/work
+COPY file/localtime /etc/
+RUN apt-get update \
+    && apt-get -y install git \
+    && apt-get -y install net-tools \
+    && apt-get -y install ssh
+RUN apt -y install apt-transport-https ca-certificates wget dirmngr gnupg software-properties-common \
+    && wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - \
+    && add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ \
+    && apt update && apt -y install adoptopenjdk-8-hotspot
+RUN pip install -U pip &&  pip install robotframework==3.2.2 robotframework-requests==0.7.2 Faker==4.17.1 xlrd==1.2.0 websocket-client==0.57.0 paho-mqtt==1.5.1 PyJWT
+COPY file/sshd_config /etc/ssh/
+COPY file/api/.ssh/ /root/.ssh/
+RUN service ssh start

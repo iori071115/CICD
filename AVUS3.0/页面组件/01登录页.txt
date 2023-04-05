@@ -1,0 +1,58 @@
+*** Settings ***
+Resource          ../通用组件.txt
+Library           ../RFKeywords.py
+Library           SeleniumLibrary
+
+*** Keywords ***
+登录
+    [Arguments]    ${URL}    ${username}    ${password}    ${text}
+    [Documentation]    初始化浏览器设置，登录系统，并判断登录页面是否包含xx文本
+    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
+    Call Method    ${chrome_options}    add_argument    test-type
+    Call Method    ${chrome_options}    add_argument    --disable-extensions
+    Call Method    ${chrome_options}    add_argument    --headless
+    Call Method    ${chrome_options}    add_argument    --disable-gpu
+    Call Method    ${chrome_options}    add_argument    --no-sandbox
+    create webdriver    Chrome    options=${chrome_options}
+    go to    ${URL}
+    set window size    1920    1080
+    #reload page
+    maximize browser window
+    ${windowsize}=    get window size
+    log    ${windowsize}
+    wait click element    //span[text()=' Askey AD Account ']
+    wait input element    //input[@id="i0116"]    ${username}
+    wait click element    //input[@id="idSIButton9"]
+    wait input element    //input[@id="i0118"]    ${password}
+    wait click element    //input[@id='idSIButton9']
+    wait click element    //input[@id="idBtn_Back"]
+    wait contains    ${text}
+
+登录AVUS
+    [Documentation]    填写对应的URL和账密，登录AVUS系统
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    henry01_zhu@askey.com    henry_0654    v3.1
+
+关闭browser
+    [Documentation]    回到登录页面，并关闭所有浏览器窗口
+    wait until keyword succeeds    3    5s    stopall    https://console-qat.avus3.askeycloud.net/#/login
+
+登出
+    [Documentation]    正常登出账号，判断是否回到登录页面
+    wait until keyword succeeds    3    5s    wait click element    //span[@class="header-username el-popover__reference"]
+    wait until keyword succeeds    3    5s    wait click element    //span[text()="Log Out"]
+    wait contains    Sign in to your account
+
+RD登录
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    eason2_wu@askey.com    OPop9090    v3.1
+
+SIT登录
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    henry01_zhu@askey.com    henry_6450    v3.1
+
+DQA登录
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    catherine_cao@askey.com    Chm1234!@#    v3.1
+
+PJM登录
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    may_xiang@askey.com    \#*c960561    v3.1
+
+PLM登录
+    wait until keyword succeeds    3    5s    登录    https://console-qat.avus3.askeycloud.net/#/login    jason_xu@askey.com    Aa@123456    v3.1
